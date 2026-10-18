@@ -1,0 +1,596 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>교토 가족여행</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&family=Noto+Sans+JP:wght@500;700&display=swap">
+<style>
+/* 레이아웃: 휴대폰 한 손 보기 기준. 상단 고정 날짜 탭 → 그날 시간표 → 구간별 길안내(표지판 박스) */
+:root{
+  --bg:#F3F5F1; --surface:#FFFFFF; --ink:#1E2420; --muted:#5D6862; --line:#DCE1DA;
+  --ai:#24456A; --ai-bg:#E5ECF4;
+  --momiji:#B4412C; --momiji-bg:#F7E6E1;
+  --ok:#3D7650; --ok-bg:#E3F0E6;
+  --sign-bg:#1C2A39; --sign-fg:#FFFFFF; --sign-sub:#B9C7D6;
+  --f-display:"Gowun Batang","Noto Serif KR",serif;
+  --f-body:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-jp:"Noto Sans JP","Hiragino Sans","Yu Gothic",var(--f-body);
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#131715; --surface:#1B201D; --ink:#E7ECE7; --muted:#9BA59F; --line:#2D3430;
+  --ai:#94B4DA; --ai-bg:#1D2937; --momiji:#E58168; --momiji-bg:#3A2420;
+  --ok:#7DBE8F; --ok-bg:#1D2E23; --sign-bg:#0D1620; --sign-fg:#F2F5F8; --sign-sub:#8FA2B6; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#131715; --surface:#1B201D; --ink:#E7ECE7; --muted:#9BA59F; --line:#2D3430;
+  --ai:#94B4DA; --ai-bg:#1D2937; --momiji:#E58168; --momiji-bg:#3A2420;
+  --ok:#7DBE8F; --ok-bg:#1D2E23; --sign-bg:#0D1620; --sign-fg:#F2F5F8; --sign-sub:#8FA2B6; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{margin:0}
+[hidden]{display:none!important}
+img{max-width:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.6}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.wrap{max-width:680px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+a{color:var(--ai)}
+.jp{font-family:var(--f-jp)}
+
+header.top{padding-block:28px 14px}
+.eyebrow{font-size:12px;letter-spacing:.08em;color:var(--muted)}
+h1{font-family:var(--f-display);font-size:30px;line-height:1.25;margin:4px 0 8px;text-wrap:balance}
+.meta{display:flex;flex-wrap:wrap;gap:6px 14px;color:var(--muted);font-size:13px}
+
+nav.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
+.tabrow{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding-block:8px}
+.tabrow::-webkit-scrollbar{display:none}
+.tab{flex:1 0 auto;min-width:64px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;padding:6px 10px;font:inherit;cursor:pointer;display:flex;flex-direction:column;align-items:center;line-height:1.25}
+.tab b{font-size:15px}
+.tab small{font-size:11px;color:var(--muted)}
+.tab[aria-selected="true"]{background:var(--ai);border-color:var(--ai);color:var(--bg)}
+.tab[aria-selected="true"] small{color:var(--bg);opacity:.85}
+.tab:focus-visible{outline:2px solid var(--momiji);outline-offset:2px}
+
+main{padding-block:18px 48px}
+.day-head h2{font-family:var(--f-display);font-size:24px;line-height:1.3;margin:0 0 4px;text-wrap:balance}
+.day-head .date{font-size:13px;color:var(--momiji);font-weight:700;letter-spacing:.04em}
+.flow{margin:10px 0 0;color:var(--muted);font-size:14px}
+.stay{display:inline-flex;gap:6px;margin-top:10px;font-size:13px;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:4px 10px}
+
+section.block{margin-top:30px}
+h3{font-size:17px;margin:0 0 10px;display:flex;align-items:baseline;gap:8px}
+h3 .n{font-family:var(--f-display);color:var(--momiji);font-size:15px}
+p{margin:0 0 8px}
+.small{font-size:13px;color:var(--muted)}
+
+/* 시간표 */
+.tt{list-style:none;margin:0;padding:0;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.tt li{display:grid;grid-template-columns:96px 1fr;gap:10px;padding:9px 12px;border-top:1px solid var(--line);align-items:baseline}
+.tt li:first-child{border-top:0}
+.tt time{font-variant-numeric:tabular-nums;font-size:13px;color:var(--muted);font-weight:500}
+.tt .what{min-width:0}
+.mode{display:inline-block;font-size:11px;color:var(--ai);background:var(--ai-bg);border-radius:5px;padding:0 6px;margin-left:4px;white-space:nowrap}
+.tt li.key .what{font-weight:700}
+
+/* 칩 */
+.chip{display:inline-block;font-size:11px;font-weight:700;border-radius:999px;padding:1px 8px;white-space:nowrap;vertical-align:2px}
+.chip.todo{color:var(--momiji);background:var(--momiji-bg)}
+.chip.opt{color:var(--muted);background:var(--bg);border:1px solid var(--line)}
+.chip.done{color:var(--ok);background:var(--ok-bg)}
+
+/* 길안내 스텝 */
+.route{list-style:none;margin:0;padding:0;position:relative}
+.route li{position:relative;padding:0 0 18px 26px}
+.route li::before{content:"";position:absolute;left:6px;top:8px;width:9px;height:9px;border-radius:50%;background:var(--surface);border:2px solid var(--ai)}
+.route li::after{content:"";position:absolute;left:10px;top:21px;bottom:2px;width:2px;background:var(--line)}
+.route li:last-child::after{display:none}
+.route li.end::before{background:var(--momiji);border-color:var(--momiji)}
+.place{font-weight:700;display:flex;flex-wrap:wrap;gap:4px 8px;align-items:baseline}
+.place .jp{font-weight:500;color:var(--muted);font-size:13px}
+.place a{font-size:12px;font-weight:500}
+.route ul{margin:4px 0 0;padding-left:18px;color:var(--ink)}
+.route ul li{padding:0;margin:2px 0}
+.route ul li::before,.route ul li::after{display:none}
+
+/* 역 표지판 */
+.sign{display:inline-flex;align-items:center;gap:10px;background:var(--sign-bg);color:var(--sign-fg);border-radius:6px;padding:5px 12px;margin:6px 6px 2px 0;max-width:100%}
+.sign .jp{font-weight:700;font-size:16px}
+.sign .en{font-size:12px;color:var(--sign-sub);letter-spacing:.02em}
+.sign-label{font-size:11px;color:var(--muted);display:block;margin-top:6px}
+
+/* 택시 카드 */
+.taxi{border:2px dashed var(--ai);border-radius:12px;padding:12px 14px;margin:8px 0;background:var(--surface)}
+.taxi .lbl{font-size:12px;color:var(--muted)}
+.taxi .dest{font-family:var(--f-jp);font-size:28px;font-weight:700;line-height:1.3;color:var(--ink)}
+.taxi .sub{font-size:13px;color:var(--muted)}
+
+/* 알림 박스 */
+.note{border-radius:10px;padding:10px 12px;margin:10px 0;font-size:14px;background:var(--ai-bg)}
+.note.warn{background:var(--momiji-bg)}
+.note b{display:block;margin-bottom:2px}
+.note.warn b{color:var(--momiji)}
+
+.opts{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:13px;min-width:460px}
+th,td{text-align:left;padding:8px 10px;border-top:1px solid var(--line);vertical-align:top}
+thead th{border-top:0;color:var(--muted);font-weight:500;font-size:12px}
+td.t{font-variant-numeric:tabular-nums;white-space:nowrap}
+tr.base td{background:var(--ai-bg)}
+
+/* 체크리스트 */
+.check{list-style:none;margin:0;padding:0;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.check li{border-top:1px solid var(--line)}
+.check li:first-child{border-top:0}
+.check label{display:grid;grid-template-columns:22px 1fr;gap:10px;padding:11px 12px;cursor:pointer}
+.check input{width:18px;height:18px;margin-top:3px;accent-color:var(--ok)}
+.check .due{font-size:12px;color:var(--momiji);font-weight:700;font-variant-numeric:tabular-nums}
+.check input:checked + span{color:var(--muted);text-decoration:line-through}
+.check input:checked + span .due{color:var(--muted)}
+
+footer{padding-block:0 32px;color:var(--muted);font-size:12px}
+@media (prefers-reduced-motion:no-preference){.panel{animation:fade .18s ease-out}@keyframes fade{from{opacity:.4}to{opacity:1}}}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="eyebrow">KYOTO · 2026 AUTUMN</div>
+    <h1>교토 가족여행 3박 4일</h1>
+    <div class="meta">
+      <span>11.26(목) – 11.29(일)</span>
+      <span>부모님과 3명</span>
+      <span>부산 ⇄ 간사이공항(KIX)</span>
+    </div>
+  </header>
+</div>
+
+<nav class="tabs" aria-label="날짜 선택">
+  <div class="wrap">
+    <div class="tabrow" role="tablist">
+      <button class="tab" role="tab" id="t-day1" data-tab="day1"><b>1일차</b><small>11.26 목</small></button>
+      <button class="tab" role="tab" id="t-day2" data-tab="day2"><b>2일차</b><small>11.27 금</small></button>
+      <button class="tab" role="tab" id="t-day3" data-tab="day3"><b>3일차</b><small>11.28 토</small></button>
+      <button class="tab" role="tab" id="t-day4" data-tab="day4"><b>4일차</b><small>11.29 일</small></button>
+      <button class="tab" role="tab" id="t-prep" data-tab="prep"><b>준비</b><small>예약 체크</small></button>
+    </div>
+  </div>
+</nav>
+
+<main class="wrap">
+
+<!-- ===================== 1일차 ===================== -->
+<div class="panel" id="day1" role="tabpanel">
+  <div class="day-head">
+    <div class="date">DAY 1 · 11월 26일 목요일</div>
+    <h2>도후쿠지 단풍과 기요미즈데라 야간관람</h2>
+    <p class="flow">공항 → 호텔 짐 보관 → 이세탄 점심 → 도후쿠지 → 고묘인(선택) → 니넨자카·산넨자카 → 장어 저녁 → 기요미즈데라 야간 → 기온(선택)</p>
+    <span class="stay">숙소 <b>미야코호텔 교토 하치조</b></span>
+  </div>
+
+  <section class="block">
+    <h3>시간표</h3>
+    <p class="small">항공권 구매 전이라 부산 07:55 출발 → KIX 09:40 도착을 가정한 시간이에요.</p>
+    <ol class="tt">
+      <li><time>09:40</time><div class="what">간사이공항 도착 <span class="mode">항공</span></div></li>
+      <li><time>09:40–10:40</time><div class="what">입국심사, 수하물, 세관</div></li>
+      <li class="key"><time>10:44 / 11:14</time><div class="what">간사이공항 → 교토역 <span class="mode">JR 하루카</span></div></li>
+      <li><time>12:00–12:35</time><div class="what">교토역 도착</div></li>
+      <li><time>12:15–12:50</time><div class="what">미야코호텔 이동, 짐 보관 <span class="mode">도보</span></div></li>
+      <li><time>12:30–13:50</time><div class="what">JR 교토 이세탄 11층 점심 <span class="mode">도보</span></div></li>
+      <li><time>13:25–14:10</time><div class="what">교토역 → 도후쿠지역 <span class="mode">JR 나라선</span></div></li>
+      <li class="key"><time>13:50–15:45</time><div class="what">도후쿠지 관람</div></li>
+      <li><time>15:20–15:50</time><div class="what">고묘인 <span class="chip opt">선택</span></div></li>
+      <li><time>15:50–16:20</time><div class="what">히가시야마로 이동 <span class="mode">택시</span></div></li>
+      <li><time>16:15–17:00</time><div class="what">야사카의 탑, 니넨자카, 산넨자카 <span class="mode">도보</span></div></li>
+      <li class="key"><time>17:00–18:10</time><div class="what">장어 저녁 · 京うな和 清水はなれ <span class="chip todo">예약 전</span></div></li>
+      <li class="key"><time>18:20–20:30</time><div class="what">기요미즈데라 야간 단풍</div></li>
+      <li><time>20:30 이후</time><div class="what">기온 산책 또는 귀가 <span class="mode">도보·택시</span></div></li>
+    </ol>
+    <div class="note warn"><b>11:14 하루카를 타게 되면</b>도후쿠지 도착이 14:20–14:40으로 늦어져요. 이 경우 고묘인은 생략해요.</div>
+  </section>
+
+  <section class="block">
+    <h3><span class="n">①</span>공항 → 미야코호텔</h3>
+    <ol class="route">
+      <li>
+        <div class="place">간사이국제공항 제1터미널</div>
+        <ul><li>입국심사 → 수하물 찾기 → 세관 통과 → 2층으로 이동</li></ul>
+        <span class="sign-label">따라갈 표지판</span>
+        <span class="sign"><span class="jp">鉄道</span><span class="en">Railways</span></span>
+      </li>
+      <li>
+        <div class="place">간사이공항역 <span class="jp">関西空港駅</span></div>
+        <ul>
+          <li><b>JR 개찰구</b>로 가기. 옆의 난카이(Nankai) 개찰구와 헷갈리지 않기</li>
+          <li>약 30분 간격, 입국 후 가장 빠른 열차 탑승 (시간 고정 안 함)</li>
+          <li>약 75–80분 · 할인권 기준 ¥2,200/인</li>
+        </ul>
+        <span class="sign-label">탈 열차</span>
+        <span class="sign"><span class="jp">はるか 京都</span><span class="en">HARUKA · Kyoto</span></span>
+      </li>
+      <li>
+        <div class="place">교토역 <span class="jp">京都駅</span></div>
+        <ul><li>남쪽 출구로 나가기</li></ul>
+        <span class="sign"><span class="jp">八条口</span><span class="en">Hachijo Exit</span></span>
+        <span class="sign"><span class="jp">八条西口</span><span class="en">Hachijo West</span></span>
+      </li>
+      <li class="end">
+        <div class="place">미야코호텔 교토 하치조 <a href="https://www.google.com/maps/search/?api=1&query=Miyako+Hotel+Kyoto+Hachijo" target="_blank" rel="noopener">지도</a></div>
+        <ul><li>하치조구치에서 도보 2–5분</li><li>본관 1층 프런트/클로크에 캐리어 3개 맡기고 점심 먹으러</li></ul>
+      </li>
+    </ol>
+  </section>
+
+  <section class="block">
+    <h3><span class="n">②</span>점심 · JR 교토 이세탄 11층</h3>
+    <ol class="route">
+      <li><div class="place">호텔 → 하치조구치</div></li>
+      <li><div class="place">교토역 남북 자유통로</div></li>
+      <li class="end"><div class="place"><span class="jp">JR京都伊勢丹 11F</span> Eat Paradise <a href="https://www.google.com/maps/search/?api=1&query=JR+Kyoto+Isetan" target="_blank" rel="noopener">지도</a></div>
+        <ul><li>호텔에서 약 10–15분</li></ul></li>
+    </ol>
+    <p>예약 없이 갑니다. 공식 식당 안내의 <span class="jp">現在の待ち組数</span>(현재 대기 팀 수)를 보고 줄 짧은 곳으로 들어가요.</p>
+    <p class="small">후보: 후지노(유바·두부), 아오이차야(일본식 정식), 스시세이(초밥), 미미우(우동·소바). 40–50분 안에 식사 마치기.</p>
+  </section>
+
+  <section class="block">
+    <h3><span class="n">③</span>교토역 → 도후쿠지 → 고묘인</h3>
+    <ol class="route">
+      <li>
+        <div class="place">교토역 JR 나라선 승강장</div>
+        <ul><li>전광판에서 <span class="jp">東福寺</span>(Tofukuji) 정차 여부와 승강장 확인</li></ul>
+        <span class="sign"><span class="jp">奈良線</span><span class="en">Nara Line</span></span>
+      </li>
+      <li>
+        <div class="place">도후쿠지역 <span class="jp">東福寺駅</span></div>
+        <ul><li>1정거장, 약 2–3분</li><li>게이한 환승 개찰구 말고 <b>일반 출구</b>로 나오기</li></ul>
+      </li>
+      <li>
+        <div class="place">도후쿠지 <span class="jp">東福寺</span> <a href="https://www.google.com/maps/search/?api=1&query=Tofukuji+Kyoto" target="_blank" rel="noopener">지도</a></div>
+        <ul>
+          <li><span class="jp">本町通</span>(혼마치도리) 방면, 도후쿠지 안내판 따라 도보 10–15분</li>
+          <li>관람 순서: 가운교 <span class="jp">臥雲橋</span> → 일하문 <span class="jp">日下門</span> → 통천교 <span class="jp">通天橋</span>·개산당 <span class="jp">開山堂</span></li>
+        </ul>
+      </li>
+      <li class="end">
+        <div class="place">고묘인 <span class="jp">光明院</span> <span class="chip opt">선택</span> <a href="https://www.google.com/maps/search/?api=1&query=Komyoin+Kyoto" target="_blank" rel="noopener">지도</a></div>
+        <ul><li>도후쿠지 남쪽으로 도보 5–10분, 20–30분 관람</li><li>시간이 밀리면 바로 생략</li></ul>
+      </li>
+    </ol>
+    <div class="note"><b>목표</b>15:45–16:00까지 이 지역 관람을 끝내고 택시 타기.</div>
+  </section>
+
+  <section class="block">
+    <h3><span class="n">④</span>택시 → 히가시야마 거리 → 장어집</h3>
+    <p class="small">고묘인 주변 좁은 길에서 택시가 안 잡히면 혼마치도리 큰길로 나가요.</p>
+    <div class="taxi">
+      <div class="lbl">택시 기사님께 보여주기</div>
+      <div class="dest">東山安井 まで</div>
+      <div class="sub">히가시야마 야스이 교차로 · 약 15–25분 · 차량당 ¥1,500–2,500</div>
+    </div>
+    <ol class="route">
+      <li><div class="place">東山安井 교차로 하차</div><ul><li><span class="jp">八坂通</span>(야사카도리)로 들어가 동쪽으로 걷기</li></ul></li>
+      <li><div class="place">야사카의 탑 <span class="jp">八坂の塔</span></div><ul><li>오층탑과 거리 사진</li></ul></li>
+      <li><div class="place">니넨자카 <span class="jp">二寧坂</span></div><ul><li>전통 상점과 골목 구경</li></ul></li>
+      <li><div class="place">산넨자카 <span class="jp">産寧坂</span></div><ul><li>돌계단 올라 <span class="jp">清水坂</span> 방향으로</li></ul></li>
+      <li class="end"><div class="place"><span class="jp">京うな和本店 清水はなれ</span> <a href="https://www.google.com/maps/search/?api=1&query=%E4%BA%AC%E3%81%86%E3%81%AA%E5%92%8C+%E6%B8%85%E6%B0%B4%E3%81%AF%E3%81%AA%E3%82%8C" target="_blank" rel="noopener">지도</a></div><ul><li>16:50–17:00 도착 목표</li><li>산넨자카 위쪽, 기요미즈 참배길 근처</li></ul></li>
+    </ol>
+  </section>
+
+  <section class="block">
+    <h3><span class="n">⑤</span>저녁 · 장어덮밥 <span class="chip todo">예약 전</span></h3>
+    <p><b>11/26(목) 17:00, 3명</b> 예약 목표. 구글 예약이 한 달 전쯤 열려서 10월 26일에 확인 알림을 걸어뒀어요.</p>
+    <p class="small">후보 메뉴: 상 히츠마부시 ¥5,610/인 · 3명 약 ¥16,830 (추가 메뉴 제외) · 식사 60–75분</p>
+  </section>
+
+  <section class="block">
+    <h3><span class="n">⑥</span>기요미즈데라 야간관람</h3>
+    <ol class="route">
+      <li><div class="place">장어집 → 기요미즈자카 <span class="jp">清水坂</span> 오르막</div></li>
+      <li class="end"><div class="place">인왕문 <span class="jp">仁王門</span> 진입 <a href="https://www.google.com/maps/search/?api=1&query=Kiyomizu-dera" target="_blank" rel="noopener">지도</a></div><ul><li>도보 5–10분, 인파에 따라 더 걸려요</li></ul></li>
+    </ol>
+    <div class="note"><b>가을 야간특별관람</b>21:00 접수 마감, 21:30 문 닫음. 18:20–20:30 관람 목표지만 끝나는 시각은 정해두지 않아요.</div>
+
+    <p style="margin-top:14px"><b>기요미즈 이후, 컨디션 보고 고르기</b></p>
+    <div class="opts">
+      <table>
+        <thead><tr><th>컨디션</th><th>경로</th><th>호텔 도착</th></tr></thead>
+        <tbody>
+          <tr><td>좋음</td><td>기요미즈 → 네네노미치 → 야사카신사 → 하나미코지 → 기온시라카와 → 택시</td><td class="t">22:00 전후</td></tr>
+          <tr class="base"><td><b>보통 (기본)</b></td><td>기요미즈 → 네네노미치 → 야사카신사 → 택시</td><td class="t">21:30–22:00</td></tr>
+          <tr><td>피곤함</td><td>기요미즈 → 고조자카 쪽으로 하산 → 택시</td><td class="t">20:30–21:30</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="taxi">
+      <div class="lbl">택시 기사님께 보여주기 (귀가)</div>
+      <div class="dest">都ホテル 京都八条 まで</div>
+      <div class="sub">미야코호텔 교토 하치조 · 교토역 하치조구치 쪽</div>
+    </div>
+  </section>
+</div>
+
+<!-- ===================== 2일차 ===================== -->
+<div class="panel" id="day2" role="tabpanel" hidden>
+  <div class="day-head">
+    <div class="date">DAY 2 · 11월 27일 금요일</div>
+    <h2>아마노하시다테·이네 버스투어</h2>
+    <p class="flow">교토역 버스 탑승 → 아마노하시다테 뷰랜드 → 점심 → 이네 후나야 → 교토역 복귀</p>
+    <span class="stay">숙소 <b>미야코호텔 교토 하치조</b></span>
+  </div>
+  <div class="note warn"><b>투어 예약 전</b>아래 시간은 검토했던 상품 기준이에요. 예약 후 실제 안내문 시간으로 바꿔야 해요.</div>
+
+  <section class="block">
+    <h3>시간표</h3>
+    <ol class="tt">
+      <li><time>07:30–08:30</time><div class="what">기상, 조식, 출발 준비</div></li>
+      <li class="key"><time>09:30–09:40</time><div class="what">하치조구치 버스 집합장소 도착 <span class="mode">도보</span></div></li>
+      <li class="key"><time>09:50</time><div class="what">교토 출발 <span class="mode">관광버스</span></div></li>
+      <li><time>11:20 전후</time><div class="what">아마노하시다테 도착</div></li>
+      <li><time>11:20–13:50</time><div class="what">뷰랜드, 점심, 산책 <span class="mode">자유시간</span></div></li>
+      <li><time>13:50–14:30</time><div class="what">이네로 이동 <span class="mode">버스</span></div></li>
+      <li><time>14:30–15:50</time><div class="what">이네 후나야 관광 <span class="mode">자유시간</span></div></li>
+      <li><time>15:50–18:20</time><div class="what">교토 복귀 <span class="mode">관광버스</span></div></li>
+      <li><time>18:20 전후</time><div class="what">교토역 하치조구치 도착</div></li>
+      <li><time>18:30 이후</time><div class="what">저녁식사, 호텔</div></li>
+    </ol>
+  </section>
+
+  <section class="block">
+    <h3><span class="n">①</span>호텔 → 투어 집합장소</h3>
+    <ol class="route">
+      <li><div class="place">미야코호텔 교토 하치조</div></li>
+      <li class="end"><div class="place">교토역 하치조구치 관광버스 주차장</div>
+        <ul><li>도보 5–10분</li><li>출발 09:50이면 09:30–09:40에 도착</li><li>예약 후 안내문의 <b>집합 장소 사진</b>을 꼭 확인</li></ul></li>
+    </ol>
+    <div class="note"><b>투어 조건</b>한국인 가이드 또는 한국어 안내, 교토역 출발·복귀. 한국어 지원이 실제 한국인 가이드인지 확인 필요 <span class="chip todo">확인 필요</span></div>
+  </section>
+
+  <section class="block">
+    <h3><span class="n">②</span>아마노하시다테 · 약 2시간 30분</h3>
+    <ol class="route">
+      <li><div class="place">버스 하차</div><ul><li><b>재집합 시각과 장소를 사진으로 남기기</b></li></ul></li>
+      <li><div class="place">아마노하시다테 뷰랜드 승강장</div>
+        <ul><li>리프트 또는 모노레일, 왕복 약 ¥1,000/인</li><li>부모님이 리프트를 불편해하시면 모노레일</li></ul></li>
+      <li><div class="place">뷰랜드 전망대 <a href="https://www.google.com/maps/search/?api=1&query=Amanohashidate+View+Land" target="_blank" rel="noopener">지도</a></div><ul><li>이날 최우선. 풍경 감상과 사진</li></ul></li>
+      <li class="end"><div class="place">점심</div>
+        <ul><li>하산 후 주변 식당. 해산물덮밥, 생선구이, 소바 등</li><li>대기가 너무 길면 다른 집으로</li></ul></li>
+    </ol>
+  </section>
+
+  <section class="block">
+    <h3><span class="n">③</span>이네 후나야 · 약 1시간 20분</h3>
+    <ol class="route">
+      <li><div class="place">이네 도착</div><ul><li>하차 지점과 재집합 장소 확인</li></ul></li>
+      <li><div class="place">이네만 유람선 <span class="chip opt">선택</span></div><ul><li>약 25분, 약 ¥1,200/인</li><li>날씨, 승선장 위치, 대기시간 보고 결정</li></ul></li>
+      <li class="end"><div class="place">후나야 거리 산책 <a href="https://www.google.com/maps/search/?api=1&query=Ine+Funaya" target="_blank" rel="noopener">지도</a></div><ul><li>어촌 전통가옥과 바닷가 풍경</li><li>사유지·주거지 출입 주의</li></ul></li>
+    </ol>
+    <p class="small">시간이 짧아서 유람선과 산책을 둘 다 길게 하기는 어려워요.</p>
+  </section>
+</div>
+
+<!-- ===================== 3일차 ===================== -->
+<div class="panel" id="day3" role="tabpanel" hidden>
+  <div class="day-head">
+    <div class="date">DAY 3 · 11월 28일 토요일</div>
+    <h2>오쿠사가·아라시야마 단풍과 료칸</h2>
+    <p class="flow">다이카쿠지 → 기오지 → 점심 → 조잣코지 → 대나무숲 → 토롯코 열차 → 스미야 키호안</p>
+    <span class="stay">숙소 <b>스미야 키호안</b> <span class="chip done">예약 완료</span></span>
+  </div>
+  <div class="note warn"><b>오후 연결이 가장 빡빡한 날</b>토롯코 열차와 료칸 셔틀 시간이 이어져 있어요. 점심 이후 일정이 밀리면 조잣코지부터 줄이세요.</div>
+
+  <section class="block">
+    <h3>시간표</h3>
+    <ol class="tt">
+      <li><time>08:30–09:00</time><div class="what">조식, 체크아웃 준비</div></li>
+      <li><time>09:00 전후</time><div class="what">교토역으로 이동 <span class="mode">도보</span></div></li>
+      <li><time>09:15–09:40</time><div class="what">교토역 → 사가아라시야마역 <span class="mode">JR 사가노선</span></div></li>
+      <li><time>09:40–09:55</time><div class="what">역 → 다이카쿠지 <span class="mode">택시</span></div></li>
+      <li class="key"><time>10:00–10:50</time><div class="what">다이카쿠지 관람</div></li>
+      <li><time>10:50–11:15</time><div class="what">다이카쿠지 → 기오지 <span class="mode">도보</span></div></li>
+      <li class="key"><time>11:15–11:55</time><div class="what">기오지 관람</div></li>
+      <li><time>12:00–12:50</time><div class="what">점심 <span class="chip todo">식당 미정</span></div></li>
+      <li><time>13:00–13:40</time><div class="what">조잣코지 <span class="chip opt">밀리면 생략</span></div></li>
+      <li><time>13:40–14:05</time><div class="what">대나무숲 이동·산책 <span class="mode">도보</span></div></li>
+      <li class="key"><time>14:05–14:35</time><div class="what">토롯코 아라시야마역 도착·대기</div></li>
+      <li class="key"><time>15:05 전후</time><div class="what">토롯코 열차 출발 <span class="chip todo">10/28 예약</span></div></li>
+      <li><time>15:25 전후</time><div class="what">토롯코 가메오카역 도착</div></li>
+      <li class="key"><time>15:35</time><div class="what">스미야 셔틀 탑승 <span class="chip todo">연결 확인</span></div></li>
+      <li><time>16:05–16:30</time><div class="what">스미야 키호안 도착</div></li>
+      <li><time>저녁</time><div class="what">대욕장, 가이세키, 객실 온천</div></li>
+    </ol>
+  </section>
+
+  <section class="block">
+    <h3><span class="n">①</span>교토역 → 다이카쿠지</h3>
+    <ol class="route">
+      <li>
+        <div class="place">교토역 JR 사가노선 승강장</div>
+        <ul><li>사가아라시야마 방면 열차, 약 15–20분</li></ul>
+        <span class="sign"><span class="jp">嵯峨野線</span><span class="en">Sagano Line</span></span>
+        <span class="sign"><span class="jp">嵯峨嵐山</span><span class="en">Saga-Arashiyama</span></span>
+      </li>
+      <li>
+        <div class="place">JR 사가아라시야마역 <span class="jp">嵯峨嵐山駅</span></div>
+        <ul><li>역 밖에서 택시, 약 5–10분 (걸으면 20분 이상이라 택시로)</li></ul>
+        <div class="taxi">
+          <div class="lbl">택시 기사님께 보여주기</div>
+          <div class="dest">大覚寺 まで</div>
+          <div class="sub">다이카쿠지</div>
+        </div>
+      </li>
+      <li class="end">
+        <div class="place">다이카쿠지 <span class="jp">大覚寺</span> <a href="https://www.google.com/maps/search/?api=1&query=Daikakuji+Kyoto" target="_blank" rel="noopener">지도</a></div>
+        <ul><li>50–60분 관람</li><li>사가 국화전, 단풍, 정원과 오사와 연못</li></ul>
+      </li>
+    </ol>
+  </section>
+
+  <section class="block">
+    <h3><span class="n">②</span>오쿠사가 걸어 내려오기</h3>
+    <ol class="route">
+      <li><div class="place">기오지 <span class="jp">祇王寺</span> <a href="https://www.google.com/maps/search/?api=1&query=Giouji+Kyoto" target="_blank" rel="noopener">지도</a></div>
+        <ul><li>다이카쿠지에서 조용한 길로 도보 20–25분</li><li>이끼정원과 단풍, 35–45분 관람</li></ul></li>
+      <li><div class="place">점심 <span class="chip todo">식당 미정</span></div>
+        <ul><li>45–50분. 토롯코 시간 때문에 긴 코스요리는 피하기</li></ul></li>
+      <li><div class="place">조잣코지 <span class="jp">常寂光寺</span> <span class="chip opt">밀리면 생략</span> <a href="https://www.google.com/maps/search/?api=1&query=Jojakkoji+Kyoto" target="_blank" rel="noopener">지도</a></div>
+        <ul><li>점심 장소에서 도보 10–15분, 35–40분 관람</li></ul></li>
+      <li class="end"><div class="place">아라시야마 대나무숲 <a href="https://www.google.com/maps/search/?api=1&query=Arashiyama+Bamboo+Grove" target="_blank" rel="noopener">지도</a></div>
+        <ul><li>조잣코지에서 도보 10–15분, 15–20분 산책</li></ul></li>
+    </ol>
+    <p class="small">도게츠교와 텐류지는 뺐어요. 토요일 단풍철 인파를 피하고, 북쪽 사찰을 본 뒤 토롯코역으로 자연스럽게 내려오기 위해서예요.</p>
+  </section>
+
+  <section class="block">
+    <h3><span class="n">③</span>대나무숲 → 토롯코 → 료칸</h3>
+    <ol class="route">
+      <li>
+        <div class="place">토롯코 아라시야마역 <span class="jp">トロッコ嵐山駅</span> <a href="https://www.google.com/maps/search/?api=1&query=Torokko+Arashiyama+Station" target="_blank" rel="noopener">지도</a></div>
+        <ul><li>대나무숲에서 도보 5–10분, <b>14:30–14:35 도착</b></li><li>승강장 가는 길에 계단 있음. 부모님 무릎 고려해 천천히</li></ul>
+        <span class="sign"><span class="jp">トロッコ嵐山</span><span class="en">Torokko Arashiyama</span></span>
+      </li>
+      <li>
+        <div class="place">사가노 관광열차</div>
+        <ul><li>토롯코 사가 15:02 출발 → <b>아라시야마 15:05 승차</b> → 가메오카 15:25 도착</li><li>약 20분 계곡 풍경</li></ul>
+      </li>
+      <li>
+        <div class="place">토롯코 가메오카역 <span class="jp">トロッコ亀岡駅</span></div>
+        <ul><li>15:35 스미야 셔틀 탑승 목표</li><li>승차 장소는 료칸에 사전 확인</li></ul>
+      </li>
+      <li class="end">
+        <div class="place">스미야 키호안 <span class="jp">すみや亀峰菴</span> <a href="https://www.google.com/maps/search/?api=1&query=Sumiya+Kihoan" target="_blank" rel="noopener">지도</a></div>
+        <ul><li>셔틀 30–45분, 16:10 전후 도착</li><li>체크인 → 대욕장 → 가이세키 저녁 → 객실 온천</li></ul>
+      </li>
+    </ol>
+    <div class="note warn"><b>열차 도착과 셔틀 출발 사이 10분</b>15:25 도착 → 15:35 셔틀. 스미야에 연결 가능하다고 확인받기 전까지는 확정 동선이 아니에요.</div>
+    <div class="note warn"><b>캐리어</b>사찰을 돌 때 짐을 들고 다닐 수 없어요. 미야코호텔 → 스미야 짐 배송 가능 여부와 소요일, 스미야 사전 수령 가능 여부를 확인해야 해요.</div>
+  </section>
+</div>
+
+<!-- ===================== 4일차 ===================== -->
+<div class="panel" id="day4" role="tabpanel" hidden>
+  <div class="day-head">
+    <div class="date">DAY 4 · 11월 29일 일요일</div>
+    <h2>료칸에서 아침을 보내고 귀국</h2>
+    <p class="flow">온천·조식 → 료칸 셔틀 → JR 가메오카역 → 교토역 → 하루카 → 간사이공항</p>
+    <span class="stay">귀국 <b>KIX 17:00 → 부산 18:30</b> <span class="chip todo">가정</span></span>
+  </div>
+
+  <section class="block">
+    <h3>시간표</h3>
+    <ol class="tt">
+      <li><time>07:00–08:00</time><div class="what">기상, 객실 온천 또는 대욕장</div></li>
+      <li><time>08:00–09:00</time><div class="what">료칸 조식</div></li>
+      <li><time>09:00–09:45</time><div class="what">온천, 짐 정리, 체크아웃</div></li>
+      <li class="key"><time>10:00</time><div class="what">스미야 → JR 가메오카역 <span class="mode">료칸 셔틀</span></div></li>
+      <li><time>10:30–10:45</time><div class="what">JR 가메오카역 도착</div></li>
+      <li><time>10:40–11:20</time><div class="what">가메오카 → 교토역 <span class="mode">JR 사가노선</span></div></li>
+      <li><time>11:20–12:10</time><div class="what">점심 또는 간단한 쇼핑 <span class="mode">교토역</span></div></li>
+      <li class="key"><time>12:30–13:00</time><div class="what">교토역 → 간사이공항 <span class="mode">JR 하루카</span></div></li>
+      <li><time>14:00–14:30</time><div class="what">간사이공항 도착 목표</div></li>
+      <li class="key"><time>17:00</time><div class="what">간사이공항 출발 (가정)</div></li>
+      <li><time>18:30</time><div class="what">부산 도착 (가정)</div></li>
+    </ol>
+    <p class="small">귀국편 구매 후 실제 시간에 맞춰 수정해요.</p>
+  </section>
+
+  <section class="block">
+    <h3><span class="n">①</span>스미야 → 교토역</h3>
+    <ol class="route">
+      <li><div class="place">스미야 키호안</div><ul><li>셔틀 09:00 / <b>10:00</b> / 11:00 중 10:00 이용</li></ul></li>
+      <li><div class="place">JR 가메오카역 <span class="jp">JR亀岡駅</span></div>
+        <ul><li>교토 방면 열차 탑승</li></ul>
+        <span class="sign"><span class="jp">嵯峨野線 京都方面</span><span class="en">Sagano Line · for Kyoto</span></span></li>
+      <li class="end"><div class="place">교토역 <span class="jp">京都駅</span></div><ul><li>점심 또는 간단한 쇼핑</li></ul></li>
+    </ol>
+    <div class="note"><b>왜 10:00 셔틀?</b>09:00은 료칸 아침이 바쁘고, 11:00은 교토역 점심과 공항 이동이 촉박해져요.</div>
+  </section>
+
+  <section class="block">
+    <h3><span class="n">②</span>교토역 → 간사이공항</h3>
+    <ol class="route">
+      <li><div class="place">교토역 하루카 승강장</div>
+        <span class="sign"><span class="jp">はるか 関西空港</span><span class="en">HARUKA · Kansai Airport</span></span></li>
+      <li><div class="place">간사이공항역 <span class="jp">関西空港駅</span></div></li>
+      <li><div class="place">제1터미널 출발층</div><ul><li>항공사 체크인, 수하물 부치기</li></ul></li>
+      <li class="end"><div class="place">보안검색 → 출국심사 → 탑승구</div></li>
+    </ol>
+    <div class="note warn"><b>늦어질 것 같으면</b>교토역 쇼핑부터 생략하고, 필요하면 점심은 포장으로 바꿔요. 17:00 출발이면 14시 전후 공항 도착이 기본 목표예요.</div>
+  </section>
+</div>
+
+<!-- ===================== 준비 체크 ===================== -->
+<div class="panel" id="prep" role="tabpanel" hidden>
+  <div class="day-head">
+    <div class="date">BEFORE THE TRIP</div>
+    <h2>예약·확인할 것</h2>
+    <p class="flow">체크한 항목은 이 휴대폰에 저장돼요.</p>
+  </div>
+  <section class="block">
+    <ul class="check">
+      <li><label><input type="checkbox" id="c-flight"><span><span class="due">가능한 빨리</span><br>항공권 구매 (부산 07:55 → KIX 09:40 / KIX 17:00 → 부산 18:30 가정)</span></label></li>
+      <li><label><input type="checkbox" id="c-unagi"><span><span class="due">10/26</span><br>장어집 예약 · 京うな和 清水はなれ 11/26 17:00, 3명</span></label></li>
+      <li><label><input type="checkbox" id="c-torokko"><span><span class="due">10/28</span><br>토롯코 열차 좌석 예약 · 11/28 아라시야마 15:05 승차</span></label></li>
+      <li><label><input type="checkbox" id="c-tour"><span><span class="due">예약 전</span><br>아마노하시다테·이네 버스투어 예약 (교토역 09:50 출발 상품)</span></label></li>
+      <li><label><input type="checkbox" id="c-guide"><span>투어의 한국어 안내가 한국인 가이드인지 확인, 집합 장소 사진 저장</span></label></li>
+      <li><label><input type="checkbox" id="c-shuttle"><span>스미야에 문의 · 토롯코 가메오카 15:25 도착 → 15:35 셔틀 연결 가능 여부, 승차 장소</span></label></li>
+      <li><label><input type="checkbox" id="c-luggage"><span>짐 이동 · 미야코호텔 → 스미야 배송 가능 여부·소요일, 스미야 사전 수령 가능 여부</span></label></li>
+      <li><label><input type="checkbox" id="c-haruka"><span>하루카 할인권 구매 (열차 시간은 고정하지 않기)</span></label></li>
+      <li><label><input type="checkbox" id="c-lunch3"><span>3일차 오쿠사가 점심 식당 정하기 (45–50분 안에 끝나는 곳)</span></label></li>
+    </ul>
+  </section>
+</div>
+
+</main>
+
+<footer class="wrap">시간은 모두 예상치예요. 예약이 확정되면 이 페이지도 맞춰 고칠게요. · 2026.10.18 기준</footer>
+
+<script>
+(function(){
+  var tabs = Array.prototype.slice.call(document.querySelectorAll('.tab'));
+  var ids = tabs.map(function(t){ return t.dataset.tab; });
+
+  function show(id){
+    if (ids.indexOf(id) < 0) id = 'day1';
+    tabs.forEach(function(t){
+      var on = t.dataset.tab === id;
+      t.setAttribute('aria-selected', on ? 'true' : 'false');
+      t.tabIndex = on ? 0 : -1;
+      document.getElementById(t.dataset.tab).hidden = !on;
+    });
+    try { localStorage.setItem('kyoto-tab', id); } catch(e){}
+  }
+
+  tabs.forEach(function(t){
+    t.addEventListener('click', function(){
+      show(t.dataset.tab);
+      window.scrollTo({top: 0});
+    });
+  });
+
+  // 처음 열 때: 링크의 #day2 같은 표시 → 여행 당일이면 그날 → 마지막으로 본 탭 → 1일차
+  function todayTab(){
+    var d = new Date(new Date().toLocaleString('en-US', {timeZone: 'Asia/Tokyo'}));
+    if (d.getFullYear() === 2026 && d.getMonth() === 10 && d.getDate() >= 26 && d.getDate() <= 29) {
+      return 'day' + (d.getDate() - 25);
+    }
+    return null;
+  }
+  var start = location.hash.replace('#','');
+  if (ids.indexOf(start) < 0) start = todayTab();
+  if (!start) { try { start = localStorage.getItem('kyoto-tab'); } catch(e){} }
+  show(start || 'day1');
+
+  // 준비 체크리스트 저장
+  document.querySelectorAll('.check input').forEach(function(box){
+    try { box.checked = localStorage.getItem('kyoto-' + box.id) === '1'; } catch(e){}
+    box.addEventListener('change', function(){
+      try { localStorage.setItem('kyoto-' + box.id, box.checked ? '1' : '0'); } catch(e){}
+    });
+  });
+})();
+</script>
+
+</body>
+</html>
